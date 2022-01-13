@@ -43,6 +43,7 @@ app.post("/createUser", (req, res) => {
     username: req.body.username,
     password: req.body.password,
   });
+  app.get("/", (req, res) => res.send("Hello from backend"));
   const { username } = req.body;
   User.exists({ username: username }, (err, doc) => {
     if (!doc) {
