@@ -48,9 +48,10 @@ app.post("/createUser", (req, res) => {
   User.exists({ username: username }, (err, doc) => {
     if (!doc) {
       user.save();
+      res.send("User created.");
       return;
     } else {
-      res.status(500);
+      res.sendStatus(500);
     }
   });
 });
