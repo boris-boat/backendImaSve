@@ -1,7 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import Todo from "../api/models/Todo.js";
+import Todo from "./models/Todo.js";
 import User from "./models/User.js";
 import dotenv from "dotenv";
 
