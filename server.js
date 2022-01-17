@@ -34,6 +34,7 @@ app.post("/createTodo", (req, res) => {
   const todo = new Todo({
     text: req.body.text,
     createdBy: req.body.creator,
+    category: req.body.category,
   });
   todo.save();
   res.json(todo);
