@@ -13,6 +13,9 @@ const TodoSchema = new Schema({
   category: {
     type: String,
   },
+  completed: {
+    type: Boolean,
+  },
 });
 const Todo = mongoose.model("Todo", TodoSchema);
 export default Todo;
