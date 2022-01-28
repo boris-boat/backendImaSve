@@ -62,5 +62,11 @@ app.delete("/delete/:id", async (req, res) => {
   const result = await Todo.findByIdAndRemove(req.params.id);
   res.json();
 });
-
+app.post("/complete:id", async (req, res) => {
+  const result = await Todo.findByIdAndUpdate(
+    { id: req.params.id },
+    { completed: !completed }
+  );
+  res.json();
+});
 app.listen(process.env.PORT || 3001);
