@@ -65,8 +65,8 @@ app.delete("/delete/:id", async (req, res) => {
 app.post("/complete/:id", async (req, res) => {
   await Todo.findByIdAndUpdate(
     { id: req.params.id },
-    { $set: { completed: !completed } }
+    { $set: { completed: !completed } },
+    res.json()
   );
-  res.json();
 });
 app.listen(process.env.PORT || 3001);
