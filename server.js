@@ -62,11 +62,18 @@ app.delete("/delete/:id", async (req, res) => {
   const result = await Todo.findByIdAndRemove(req.params.id);
   res.json();
 });
-app.put("/complete/:id", async (req, res) => {
-  await Todo.findByIdAndUpdate(
-    { id: req.params.id },
-    { $set: { completed: !completed } },
-    res.json()
-  );
+app.get("/termini", async (req, res) => {
+  const termini = await Termin.find();
+  res.json(termini);
+});
+app.post("/dodajtermin", (req, res) => {
+  const termin = new Termin({
+    dan: req.body.dan,
+    datum: req.body.datum,
+    vreme: req.body.vreme,
+    detalji: req.body.detalji,
+  });
+  termin.save();
+  res.json(termin);
 });
 app.listen(process.env.PORT || 3001);
