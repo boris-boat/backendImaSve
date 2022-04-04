@@ -4,7 +4,7 @@ import cors from "cors";
 import Todo from "./models/Todo.js";
 import User from "./models/User.js";
 import dotenv from "dotenv";
-import Termin from "/models/Termin.js";
+import Termin from "./models/Termin.js";
 
 const app = express();
 app.use(express.json());
