@@ -4,6 +4,7 @@ import cors from "cors";
 import Todo from "./models/Todo.js";
 import User from "./models/User.js";
 import dotenv from "dotenv";
+import Termin from "/models/Termin.js";
 
 const app = express();
 app.use(express.json());
@@ -75,5 +76,10 @@ app.post("/dodajtermin", (req, res) => {
   });
   termin.save();
   res.json(termin);
+});
+
+app.delete("/deleteTermin/:id", async (req, res) => {
+  const result = await Termin.findByIdAndRemove(req.params.id);
+  res.json();
 });
 app.listen(process.env.PORT || 3001);
