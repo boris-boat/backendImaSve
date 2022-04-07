@@ -5,13 +5,14 @@ import Todo from "./models/Todo.js";
 import User from "./models/User.js";
 import dotenv from "dotenv";
 import Termin from "./models/Termin.js";
+import Parser from "rss-parser";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 dotenv.config();
 const mongodb = process.env.MONGO;
-
+let parser = new Parser();
 mongoose
   .connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(console.log("baza konektovana"));
@@ -81,5 +82,33 @@ app.post("/dodajtermin", (req, res) => {
 app.delete("/deleteTermin/:id", async (req, res) => {
   const result = await Termin.findByIdAndRemove(req.params.id);
   res.json();
+});
+
+app.get("/getnews", async (req, res) => {
+  let rssFeed = [];
+
+  let feedN1 = await parser
+    .parseURL("https://rs.n1info.com/feed")
+    .then((feedN1) => {
+      for (let i = 0; i < 5; i++) {
+        rssFeed.push(feedN1.items[i]);
+      }
+    });
+  let feedDanas = await parser
+    .parseURL("https://www.danas.rs/feed/")
+    .then((feedDanas) => {
+      for (let i = 0; i < 5; i++) {
+        rssFeed.push(feedDanas.items[i]);
+      }
+    });
+  let feedBlic = await parser
+    .parseURL("https://www.blic.rs/rss/danasnje-vesti")
+    .then((feedBlic) => {
+      for (let i = 0; i < 5; i++) {
+        rssFeed.push(feedBlic.items[i]);
+      }
+    });
+
+  res.send(rssFeed);
 });
 app.listen(process.env.PORT || 3001);
