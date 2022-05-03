@@ -6,6 +6,7 @@ import User from "./models/User.js";
 import dotenv from "dotenv";
 import Termin from "./models/Termin.js";
 import Parser from "rss-parser";
+import TrackerData from "./models/TrackerData.js";
 
 const app = express();
 app.use(express.json());
@@ -20,6 +21,10 @@ mongoose
 app.get("/todos:user", async (req, res) => {
   const todos = await Todo.find({ createdBy: req.params.user });
   res.json(todos);
+});
+app.get("/trackerData:user", async (req, res) => {
+  const trackerData = await TrackerData.find({ createdBy: req.params.user });
+  res.json(trackerData);
 });
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
@@ -42,17 +47,72 @@ app.post("/createTodo", (req, res) => {
   todo.save();
   res.json(todo);
 });
+app.post("/saveData", async (req, res) => {
+  let update = {
+    bills: req.body.bills,
+    entertainment: req.body.entertainment,
+    food: req.body.food,
+    health: req.body.health,
+    transit: req.body.transit,
+    other: req.body.other,
+  };
+  TrackerData.findOneAndUpdate(
+    { createdBy: req.body.createdBy },
+    update,
+    { new: true },
+    (error, data) => {
+      if (error) {
+        console.log(error);
+      } else {
+        res.json(data);
+      }
+    }
+  );
+});
+app.post("/resetData", async (req, res) => {
+  let update = {
+    bills: 0,
+    entertainment: 0,
+    food: 0,
+    health: 0,
+    transit: 0,
+    other: 0,
+  };
+  TrackerData.findOneAndUpdate(
+    { createdBy: req.body.createdBy },
+    update,
+    { new: true },
+    (error, data) => {
+      if (error) {
+        console.log(error);
+      } else {
+        res.json(data);
+      }
+    }
+  );
+});
+
 app.post("/createUser", (req, res) => {
+  const { username } = req.body;
+  let firstTrackerData = {
+    createdBy: username,
+    bills: 0,
+    entertainment: 0,
+    food: 0,
+    health: 0,
+    transit: 0,
+    other: 0,
+  };
   const user = new User({
     username: req.body.username,
     password: req.body.password,
   });
 
-  const { username } = req.body;
   User.exists({ username: username }, (err, doc) => {
     if (!doc) {
       user.save();
       res.send("User created.");
+      TrackerData.create(firstTrackerData);
       return;
     } else {
       res.sendStatus(500);
