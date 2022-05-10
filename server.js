@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import Termin from "./models/Termin.js";
 import Parser from "rss-parser";
 import TrackerData from "./models/TrackerData.js";
+import bcrypt from "bcrypt";
 
 const app = express();
 app.use(express.json());
@@ -26,17 +27,28 @@ app.get("/trackerData:user", async (req, res) => {
   const trackerData = await TrackerData.find({ createdBy: req.params.user });
   res.json(trackerData);
 });
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  User.exists({ username: username, password: password }, (err, doc) => {
-    if (doc) {
-      res.status(200).json("User exists");
 
-      return;
+  User.exists({ username: username }, (err, doc) => {
+    if (doc) {
+      User.findOne({ username: username })
+        .select("password")
+        .lean()
+        .then((result) => {
+          bcrypt.compare(password, result.password, (err, result) => {
+            if (result === true) {
+              res.status(200).json("User exists");
+
+              return;
+            }
+            res.status(403).send("Database error");
+          });
+        });
     }
-    res.status(403).send("neradi");
   });
 });
+
 app.post("/createTodo", (req, res) => {
   const todo = new Todo({
     text: req.body.text,
@@ -92,8 +104,27 @@ app.post("/resetData", async (req, res) => {
   );
 });
 
-app.post("/createUser", (req, res) => {
-  const { username } = req.body;
+app.post("/createUser", async (req, res) => {
+  const { username, password } = req.body;
+
+  bcrypt.hash(password, 10).then((err, hash) => {
+    const user = new User({
+      username: req.body.username,
+      password: err,
+    });
+
+    User.exists({ username: username }, (err, doc) => {
+      if (!doc) {
+        user.save();
+        res.send("User created.");
+        TrackerData.create(firstTrackerData);
+        return;
+      } else {
+        res.sendStatus(500);
+      }
+    });
+  });
+
   let firstTrackerData = {
     createdBy: username,
     bills: 0,
@@ -103,21 +134,6 @@ app.post("/createUser", (req, res) => {
     transit: 0,
     other: 0,
   };
-  const user = new User({
-    username: req.body.username,
-    password: req.body.password,
-  });
-
-  User.exists({ username: username }, (err, doc) => {
-    if (!doc) {
-      user.save();
-      res.send("User created.");
-      TrackerData.create(firstTrackerData);
-      return;
-    } else {
-      res.sendStatus(500);
-    }
-  });
 });
 app.get("/", (req, res) => res.send("Hello from backend"));
 app.delete("/delete/:id", async (req, res) => {
