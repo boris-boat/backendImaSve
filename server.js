@@ -166,22 +166,29 @@ app.get("/getnews", async (req, res) => {
   let feedN1 = await parser
     .parseURL("https://rs.n1info.com/feed")
     .then((feedN1) => {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         rssFeed.push(feedN1.items[i]);
       }
     });
   let feedDanas = await parser
     .parseURL("https://www.danas.rs/feed/")
     .then((feedDanas) => {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         rssFeed.push(feedDanas.items[i]);
       }
     });
   let feedBlic = await parser
     .parseURL("https://www.blic.rs/rss/danasnje-vesti")
     .then((feedBlic) => {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         rssFeed.push(feedBlic.items[i]);
+      }
+    });
+  let feedMozzart = await parser
+    .parseURL("https://www.mozzartsport.com/rss/0")
+    .then((feedMozzart) => {
+      for (let i = 0; i < 10; i++) {
+        rssFeed.push(feedMozzart.items[i]);
       }
     });
 
