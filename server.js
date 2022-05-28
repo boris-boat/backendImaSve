@@ -8,17 +8,21 @@ import Termin from "./models/Termin.js";
 import Parser from "rss-parser";
 import TrackerData from "./models/TrackerData.js";
 import bcrypt from "bcrypt";
-
+import crypto from "crypto"
 const app = express();
 app.use(express.json());
 app.use(cors());
 dotenv.config();
+
 const mongodb = process.env.MONGO;
+let token = crypto.randomBytes(32).toString('hex')
 let parser = new Parser();
 mongoose
   .connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(console.log("baza konektovana"));
-
+app.get("/", (req, res) => {
+  res.json(token)
+});
 app.get("/todos:user", async (req, res) => {
   const todos = await Todo.find({ createdBy: req.params.user });
   res.json(todos);
@@ -37,9 +41,12 @@ app.post("/login", async (req, res) => {
         .lean()
         .then((result) => {
           bcrypt.compare(password, result.password, (err, result) => {
+            
+            //napravi u serveru da responduje token , a da react vuce login sa localhosta 
             if (result === true) {
-              res.status(200).json("User exists");
-
+             
+              res.json({token});
+              
               return;
             }
             res.status(403).send("Database error");
@@ -135,7 +142,7 @@ app.post("/createUser", async (req, res) => {
     other: 0,
   };
 });
-app.get("/", (req, res) => res.send("Hello from backend"));
+
 app.delete("/delete/:id", async (req, res) => {
   const result = await Todo.findByIdAndRemove(req.params.id);
   res.json();
