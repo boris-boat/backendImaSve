@@ -8,25 +8,29 @@ import Termin from "./models/Termin.js";
 import Parser from "rss-parser";
 import TrackerData from "./models/TrackerData.js";
 import bcrypt from "bcrypt";
-import crypto from "crypto"
+import crypto from "crypto";
+import Conversation from "./models/Conversation.js";
+import Message from "./models/Message.js";
+
+import {router as todoRoutes}  from './routes/todos.js';
+
+
+
+const router = express.Router()
 const app = express();
 app.use(express.json());
 app.use(cors());
 dotenv.config();
-
 const mongodb = process.env.MONGO;
-let token = crypto.randomBytes(32).toString('hex')
+let token = crypto.randomBytes(32).toString("hex");
 let parser = new Parser();
 mongoose
   .connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(console.log("baza konektovana"));
 app.get("/", (req, res) => {
-  res.json(token)
+  res.json(token);
 });
-app.get("/todos:user", async (req, res) => {
-  const todos = await Todo.find({ createdBy: req.params.user });
-  res.json(todos);
-});
+app.use("/todos",todoRoutes)
 app.get("/trackerData:user", async (req, res) => {
   const trackerData = await TrackerData.find({ createdBy: req.params.user });
   res.json(trackerData);
@@ -41,12 +45,10 @@ app.post("/login", async (req, res) => {
         .lean()
         .then((result) => {
           bcrypt.compare(password, result.password, (err, result) => {
-            
-            //napravi u serveru da responduje token , a da react vuce login sa localhosta 
+            //napravi u serveru da responduje token , a da react vuce login sa localhosta
             if (result === true) {
-             
-              res.json({token});
-              
+              res.json({ token });
+
               return;
             }
             res.status(403).send("Database error");
@@ -56,16 +58,7 @@ app.post("/login", async (req, res) => {
   });
 });
 
-app.post("/createTodo", (req, res) => {
-  const todo = new Todo({
-    text: req.body.text,
-    createdBy: req.body.creator,
-    category: req.body.category,
-    completed: false,
-  });
-  todo.save();
-  res.json(todo);
-});
+
 app.post("/saveData", async (req, res) => {
   let update = {
     bills: req.body.bills,
@@ -143,10 +136,6 @@ app.post("/createUser", async (req, res) => {
   };
 });
 
-app.delete("/delete/:id", async (req, res) => {
-  const result = await Todo.findByIdAndRemove(req.params.id);
-  res.json();
-});
 app.get("/termini", async (req, res) => {
   const termini = await Termin.find();
   res.json(termini);
@@ -169,7 +158,7 @@ app.delete("/deleteTermin/:id", async (req, res) => {
 
 app.get("/getnews", async (req, res) => {
   let rssFeed = [];
-
+ 
   let feedN1 = await parser
     .parseURL("https://rs.n1info.com/feed")
     .then((feedN1) => {
@@ -200,5 +189,63 @@ app.get("/getnews", async (req, res) => {
     });
 
   res.send(rssFeed);
+});
+app.post("/createConversation", async (req, res) => {
+  console.log(req.body)
+  const newConversation = new Conversation(req.body);
+  try {
+    const savedConversation = await newConversation.save();
+    res.status(200).json(savedConversation);
+  } catch (error) {
+    console.log(error);
+  }
+});
+app.get("/getconversations/:userId", async (req, res) => {
+  
+  try {
+    const conversation = await Conversation.find({
+      members: { $in: [req.params.userId] },
+    });
+  res.json(conversation)
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+app.get("/getconversationsTwoUsers/:firstUserId/:secondUserId", async (req, res) => {
+  try {
+    const conversation = await Conversation.findOne({
+      members: { $all: [req.params.firstUserId, req.params.secondUserId] },
+    });
+    res.status(200).json(conversation);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+app.post("/createMessage", async (req, res) => {
+  const newMessage = new Message(req.body);
+
+  try {
+    const savedMessage = await newMessage.save();
+    res.status(200).json(savedMessage);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+  
+});
+app.get("/getmessages/:conversationId", async (req, res) => {
+  try {
+    const messages = await Message.find({
+      conversationId: req.params.conversationId,
+    });
+    res.status(200).json(messages);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+app.get("/getallusers", async (req, res) => {
+  
+  const users = await User.find();
+  res.json(users);
 });
 app.listen(process.env.PORT || 3001);
