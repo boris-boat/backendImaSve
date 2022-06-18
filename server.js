@@ -57,9 +57,9 @@ app.post("/login", async (req, res) => {
   });
 });
 
-app.get("/torrentSearch/:query/:torrentCategory",async (req,res)=> {
-  
-  const torrents = await TorrentSearchApi.search(req.params.query,req.params.torrentCategory,20);
+app.get("/torrentSearch/:query/:torrentCategory/:nrOfResults",async (req,res)=> {
+  console.log(req.params.nrOfResults)
+  const torrents = await TorrentSearchApi.search(req.params.query,req.params.torrentCategory,req.params.nrOfResults);
  
   
     
