@@ -15,7 +15,8 @@
     "express": "^4.17.2",
     "mongoose": "^6.1.5",
     "nodemon": "^2.0.15",
-    "rss-parser": "^3.12.0"
+    "rss-parser": "^3.12.0",
+    "torrent-search-api": "^2.1.4"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

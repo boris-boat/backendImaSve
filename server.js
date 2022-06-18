@@ -11,7 +11,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import Conversation from "./models/Conversation.js";
 import Message from "./models/Message.js";
-
+import TorrentSearchApi  from "torrent-search-api";
 import {router as todoRoutes}  from './routes/todos.js';
 import {router as trackerRoutes}  from './routes/trackerData.js';
 
@@ -24,6 +24,7 @@ dotenv.config();
 const mongodb = process.env.MONGO;
 let token = crypto.randomBytes(32).toString("hex");
 let parser = new Parser();
+TorrentSearchApi.enablePublicProviders();
 mongoose
   .connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(console.log("baza konektovana"));
@@ -56,8 +57,14 @@ app.post("/login", async (req, res) => {
   });
 });
 
-
-
+app.get("/torrentSearch/:query/:torrentCategory",async (req,res)=> {
+  
+  const torrents = await TorrentSearchApi.search(req.params.query,req.params.torrentCategory,20);
+ 
+  
+    
+  res.json(torrents)
+})
 
 app.post("/createUser", async (req, res) => {
   const { username, password } = req.body;
